@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Antigen-tail Check | Data-Rich, Insight-Poor</title>
+<meta name="description" content="Are two expression-matched populations actually comparable? Compare empirical antigen distributions, low-expression tails and explicitly hypothetical response curves.">
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to comparison</a>
+<header class="top">
+  <a class="brand" href="#main" aria-label="Antigen-tail Check home"><svg viewBox="0 0 32 32" role="img" aria-label="Distribution mark"><path d="M3 26V8M3 26h26M7 23h6v-8h6V7h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 19h5v-3h11v-8h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/></svg><span>Data-Rich, Insight-Poor</span></a>
+  <nav aria-label="Main"><a href="#science">The science</a><a href="model.md">The math</a><button id="theme" type="button">Light mode</button></nav>
+</header>
+<main id="main">
+<section class="intro">
+  <p class="eyebrow">99 SMALL PROBLEMS · No. 02 <span>RESEARCH PREVIEW · v0.1.0-alpha</span></p>
+  <h1>Antigen-tail Check</h1>
+  <p class="question">Are two expression-matched populations actually comparable?</p>
+  <p class="lede">The average cell is a convenient fiction. Compare the cells you have, not just the mean they share.</p>
+</section>
+<section class="workbench" aria-label="Distribution comparison">
+<aside class="controls">
+ <h2>Define the comparison</h2>
+ <label for="preset">Start with a synthetic test case</label>
+ <select id="preset"><option value="tail">Equal mean, hidden tail</option><option value="crossing">The ranking reverses</option><option value="identical">Identical distributions</option><option value="zero">A zero-antigen compartment</option></select>
+ <div class="row"><button id="load" type="button">Load case</button><button id="reset" type="button" class="quiet">Reset</button></div>
+ <p class="help">All built-in numbers are invented mathematical examples, not therapeutic measurements.</p>
+ <details id="data-panel">
+  <summary>Population inputs &amp; comparability</summary>
+  <label for="origin">Data provenance</label>
+  <select id="origin"><option value="synthetic">Synthetic / illustrative</option><option value="empirical">Empirical observations</option></select>
+  <label for="unitsA">A measurement scale</label>
+  <select id="unitsA"><option value="abc">Antibodies bound per cell (ABC)</option><option value="mesf">MESF</option><option value="relative">Linear relative fluorescence</option></select>
+  <label for="unitsB">B measurement scale</label>
+  <select id="unitsB"><option value="abc">Antibodies bound per cell (ABC)</option><option value="mesf">MESF</option><option value="relative">Linear relative fluorescence</option></select>
+  <p class="help">ABC is not automatically receptor count; MESF is not ABC. Values must be on a nonnegative linear scale. No raw FCS, logicle coordinates, censored values or histogram-bin centers.</p>
+  <label for="dataA">Population A <span class="popA">solid line</span></label>
+  <textarea id="dataA" rows="5" maxlength="20000" spellcheck="false" aria-describedby="format"></textarea>
+  <label for="fileA">Or import population A locally</label><input id="fileA" type="file" accept=".csv,.txt,.tsv,text/plain,text/csv">
+  <p id="fileInfoA" class="help"></p><button id="clearA" type="button" hidden>Clear A file</button>
+  <label for="dataB">Population B <span class="popB">dashed line</span></label>
+  <textarea id="dataB" rows="5" maxlength="20000" spellcheck="false" aria-describedby="format"></textarea>
+  <label for="fileB">Or import population B locally</label><input id="fileB" type="file" accept=".csv,.txt,.tsv,text/plain,text/csv">
+  <p id="fileInfoB" class="help"></p><button id="clearB" type="button" hidden>Clear B file</button>
+  <p class="help" id="format">One value per line, or exact value,count rows. Optional header: antigen,count. Counts are positive integers. Retain genuine zeros; do not clip negative compensated events to zero. Editors support 20,000 characters; for larger lists use local CSV/TXT import (up to 100,000 rows and 5 MB per population). Files are not uploaded.</p>
+  <label class="check"><input id="compatible" type="checkbox">Same measurement mapping, staining definition and population gates, or a validated harmonization.</label>
+  <label class="check"><input id="resolved" type="checkbox">The compared range is quantitatively resolved; no hidden censoring, clipping, saturation or antigen-positive-only gate.</label>
+  <label for="notes">Provenance / calibration / replicate notes</label>
+  <textarea id="notes" rows="3" maxlength="2000" placeholder="Required for empirical inputs. Record the measurement definition, controls, gates, calibration and biological replicate. Do not enter confidential information."></textarea>
+ </details>
+ <fieldset>
+  <legend>Threshold &amp; response scenario</legend>
+  <label for="threshold">Expression cutoff T <span>(same scale as inputs)</span></label>
+  <input id="threshold" type="number" min="0.000001" max="1000000000000" step="any" value="10000">
+  <label for="slope">Hill slope h <span>(scenario, not a fitted mechanism)</span></label>
+  <input id="slope" type="number" min="0.1" max="20" step="0.1" value="4">
+  <div class="duo"><div><label for="lower">Sweep minimum</label><input id="lower" type="number" min="0" step="any" value="1000"></div><div><label for="upper">Sweep maximum</label><input id="upper" type="number" min="0" step="any" value="100000"></div></div>
+ </fieldset>
+ <details>
+  <summary>Descriptive comparison margins</summary>
+  <label for="meanMargin">Mean mismatch tolerance (%)</label><input id="meanMargin" type="number" min="0" max="100" step="any" value="5">
+  <label for="tailMargin">Tail-gap tolerance (percentage points)</label><input id="tailMargin" type="number" min="0" max="100" step="any" value="5">
+  <p class="help">Operational margins only. They do not establish biological equivalence or account for replicate uncertainty.</p>
+ </details>
+ <button id="run" type="button" class="primary">Run comparison</button>
+ <p class="help">Calculations run in your browser. There is no data-upload endpoint or persistent storage. Fonts load from an external provider; entered values are not sent there.</p>
+</aside>
+<div class="results">
+ <div id="status" class="status" role="status" aria-live="polite"></div>
+ <div id="output">
+  <section class="verdict" aria-label="Comparison result">
+   <p class="eyebrow" id="provenance"></p>
+   <h2 id="headline"></h2><p id="interpretation"></p>
+   <div class="metrics">
+    <div><span>Arithmetic mean A / B</span><strong id="means"></strong><small id="meanGap"></small></div>
+    <div><span>At or below T · A / B</span><strong id="tails"></strong><small id="tailGap"></small></div>
+    <div><span>Largest tail gap in sweep</span><strong id="bandGap"></strong><small id="bandConclusion"></small></div>
+   </div>
+  </section>
+  <section class="plotpanel">
+   <div class="plothead"><div><h2>The distribution is the comparison</h2><p>Cumulative fraction at or below each expression cutoff.</p></div><div class="legend"><span class="popA">━ A</span><span class="popB">┄ B</span></div></div>
+   <canvas id="cdfPlot" role="img" aria-label="Cumulative antigen distribution for populations A and B. Numerical values are in the results table and downloadable sweep."></canvas>
+   <p class="caption" id="order"></p>
+  </section>
+  <section class="plotpanel">
+   <div class="plothead"><div><h2>What the response assumption changes</h2><p>Unresponsive share under an assumed Hill mapping. Not survival.</p></div><div class="legend"><span class="popA">━ A</span><span class="popB">┄ B</span></div></div>
+   <canvas id="responsePlot" role="img" aria-label="Hypothetical unresponsive share across expression midpoint T. Values can be downloaded."></canvas>
+   <p class="caption">Here T is the half-response expression level, not a minimum recognition threshold. Both populations use the same mapping; h is not a molecular cooperativity estimate.</p>
+  </section>
+  <section class="tablepanel">
+   <h2>Keep the two claims separate</h2>
+   <div class="table-scroll"><table><thead><tr><th scope="col">Quantity</th><th scope="col">Population A</th><th scope="col">Population B</th></tr></thead><tbody id="stats"></tbody></table></div>
+   <p class="caption" id="bound"></p>
+   <div class="row"><button id="exportJSON" type="button">Download full report · JSON</button><button id="exportCSV" type="button">Download sweep · CSV</button></div>
+   <p class="help">Event counts are not biological replicate counts. No p-values, confidence intervals, efficacy estimates or clinical recommendations are generated.</p>
+  </section>
+ </div>
+</div>
+</section>
+<section id="science" class="science">
+ <div><p class="eyebrow">THE TOOL, NOT THE ORACLE</p><h2>A distribution audit.<br>Not a tumor-response simulator.</h2><p>Antigen-tail Check compares two empirical or synthetic expression distributions. It measures tail differences exactly, then asks what those differences would imply under an explicitly assumed, shared response mapping. It does not learn that mapping from fluorescence.</p><p>Useful models for assumptions with expensive ambitions.</p><a href="model.md">Read the complete model and validation plan →</a> <a href="model.js" download>Download the calculation code →</a></div>
+ <div class="science-text">
+  <h3>Why the mean is insufficient</h3>
+  <p>For a nonlinear response g, averaging expression before applying the response need not agree with averaging cell-level responses. This is a mathematical property, not evidence that any particular treatment has this response.</p>
+  <div class="equation">E[g(A)] ≠ g(E[A])<br>g(a; T, h) = a<sup>h</sup> / (a<sup>h</sup> + T<sup>h</sup>)<br>R(T, h) = 1 − Σ<sub>i</sub> w<sub>i</sub> g(a<sub>i</sub>; T, h)</div>
+  <h3>A useful bound without a fitted response curve</h3>
+  <p>For the same nondecreasing response g in [0, 1] applied to both populations, the absolute difference in average response is bounded by the maximum cumulative-distribution separation D. This is an exact statement about the supplied distributions, not a confidence bound on unobserved biological populations.</p>
+  <div class="equation">F<sub>j</sub>(t) = Σ<sub>i</sub> w<sub>ji</sub> 1[a<sub>ji</sub> ≤ t]<br>D = sup<sub>t</sub> |F<sub>A</sub>(t) − F<sub>B</sub>(t)|<br>|E<sub>A</sub>[g] − E<sub>B</sub>[g]| ≤ D</div>
+  <p>The bound uses all thresholds. A small gap over a selected sweep alone does not bound responses outside that range. If the CDFs cross, which population has the larger low-expression fraction depends on the cutoff.</p>
+  <h3>Mechanism matters more than the label “positive”</h3>
+  <p>In a published CD20 CAR-T system, lysis and activation required different antigen-expression ranges; the lowest tested density with lysis was not the half-maximal response density. These are system-specific observations, not thresholds imported into this tool (<a href="https://academic.oup.com/jimmunol/article/194/3/911/7972840?guestAccessKey=">Watanabe et al., 2015</a>).</p>
+  <p>ADC models show how target heterogeneity interacts with payload transfer, growth and bystander effects, mechanisms that can invalidate an independent cell-by-cell response mapping (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12370192/">Wood et al., 2025</a>). Fc immune-complex binding likewise depends on valency and receptor context, and binding does not by itself establish an effector response (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10404157/">Tan et al., 2023</a>).</p>
+  <h3>Measurement is part of the biology</h3>
+  <p>ABC, MESF and relative fluorescence have different meanings; equal unit labels do not establish equal calibration or low-signal resolution (<a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=921423">Wang &amp; Hoffman, 2017</a>). This preview therefore blocks comparisons when measurement comparability or tail resolution is unconfirmed, rather than manufacturing a precise answer from an unresolved tail.</p>
+  <p>A marginal antigen distribution also cannot establish equal accessibility, spatial arrangement, internalization, effector susceptibility or observation-time response. Use a held-out functional mixture experiment to test the shared-response assumption; see the validation plan.</p>
+ </div>
+</section>
+<footer><p>Data-Rich, Insight-Poor · 99 Small Problems · Research-use preview</p><p>Original implementation of general distribution mathematics. Synthetic examples only. No product-specific sequences, constructs, assay datasets or fitted therapeutic parameters are supplied.</p></footer>
+</main>
+</body>
+</html>
