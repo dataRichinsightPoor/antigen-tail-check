@@ -1,3 +1,7 @@
+// Historical development-harness script, not a standalone Node test.
+// Requires atPage (a live Playwright page with the app loaded) and atErrors
+// (an array collecting page errors). Paths and server port below describe
+// the original validation environment; adapt them before replaying.
 var fsAT=await import("node:fs/promises");
 await fsAT.mkdir("/home/user/workspace/antigen-tail-qa",{recursive:true});
 var checksAT=[];

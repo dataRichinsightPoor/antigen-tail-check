@@ -1,0 +1,21 @@
+name: Numerical validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  numerical-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build worker and run numerical tests
+        run: npm test
+      - name: Verify committed worker matches source
+        run: git diff --exit-code -- web/worker-source.js

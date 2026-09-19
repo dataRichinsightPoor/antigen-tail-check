@@ -4,6 +4,10 @@ Are two expression-matched populations actually comparable? This research-use br
 
 Part of Data-Rich, Insight-Poor, 99 Small Problems. Useful models for assumptions with expensive ambitions.
 
+## Source
+
+[Public repository](https://github.com/dataRichinsightPoor/antigen-tail-check) · [Scientific model and mathematics](web/model.md) · [Numerical implementation](web/model.js)
+
 ## Run locally
 
 The committed preview is prebuilt and requires no installation. After changing the calculation or worker code, run `npm run build` to regenerate its self-contained worker bundle. Serve the `web` directory with any static web server, for example:
@@ -12,7 +16,9 @@ The committed preview is prebuilt and requires no installation. After changing t
 python -m http.server 8080 --directory web
 ```
 
-Open `http://localhost:8080`. Run the mathematical unit tests with `npm test` using a recent Node.js version.
+Open `http://localhost:8080`. Run the mathematical unit tests with `npm test` using Node.js 22 or later. No npm installation is required for the app, build or numerical tests.
+
+GitHub Actions runs the numerical tests and checks that the committed worker bundle matches its source. The historical browser validation is recorded in [the validation receipt](tests/validation-receipt.md); it is not part of this CI workflow. `tests/browser-qa.js` is a development-harness script that requires a supplied Playwright page and error collector, not a standalone test command.
 
 ## Scientific documentation
 
@@ -31,3 +37,7 @@ This is v0.1.0-alpha, a computationally tested preview, not a wet-lab-validated 
 - `tests/qa-inventory.md`: functional and visual acceptance inventory.
 
 All numerical demonstrations are synthetic. The preview has no backend or persistent storage; entered observations remain in the browser. The external font service receives normal resource requests but no entered values.
+
+## License
+
+The original code and accompanying documentation are available under the [MIT License](LICENSE.md). Cited publications and externally served fonts remain subject to their respective rights and licenses; citing them does not relicense them.
