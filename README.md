@@ -8,6 +8,14 @@ Part of Data-Rich, Insight-Poor, 99 Small Problems. Useful models for assumption
 
 [Public repository](https://github.com/dataRichinsightPoor/antigen-tail-check) · [Scientific model and mathematics](web/model.md) · [Numerical implementation](web/model.js)
 
+## Public demo and release
+
+Open [Antigen-tail Check on GitHub Pages](https://datarichinsightpoor.github.io/antigen-tail-check/). No installation or sign-in is required; the default view opens in dark mode with an explicitly synthetic equal-mean comparison.
+
+Choose a synthetic case or expand **Population inputs & comparability** to enter your own values or import a local file. Confirm the measurement mapping and resolved range, record provenance for empirical inputs, set the expression cutoff and hypothetical Hill scenario, and select **Run comparison**. Download the full JSON report or CSV sweep to retain the calculation and its assumptions.
+
+The [v0.1.0-alpha prerelease](https://github.com/dataRichinsightPoor/antigen-tail-check/releases/tag/v0.1.0-alpha) preserves a fixed source snapshot. The public demo follows `main`; its deployment workflow rebuilds the worker and requires all numerical tests to pass before publication. See [deployment and verification](docs/deployment.md) for maintenance, versioning and privacy boundaries.
+
 ## Run locally
 
 The committed preview is prebuilt and requires no installation. After changing the calculation or worker code, run `npm run build` to regenerate its self-contained worker bundle. Serve the `web` directory with any static web server, for example:
