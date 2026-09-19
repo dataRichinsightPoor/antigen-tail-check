@@ -6,7 +6,7 @@ Part of Data-Rich, Insight-Poor, 99 Small Problems. Useful models for assumption
 
 ## Run locally
 
-No build or installation is required. Serve the `web` directory with any static web server, for example:
+The committed preview is prebuilt and requires no installation. After changing the calculation or worker code, run `npm run build` to regenerate its self-contained worker bundle. Serve the `web` directory with any static web server, for example:
 
 ```sh
 python -m http.server 8080 --directory web
@@ -25,6 +25,7 @@ This is v0.1.0-alpha, a computationally tested preview, not a wet-lab-validated 
 - `web/index.html`, `web/style.css`, `web/app.js`: dark-default browser interface.
 - `web/model.js`: shared numerical core and synthetic examples.
 - `web/worker.js`: off-main-thread calculation and error reporting.
+- `web/worker-source.js`: generated self-contained worker for sandboxed previews.
 - `web/model.md`: scientific model, references and first-release specification.
 - `tests/model.test.mjs`: analytic and property-based numerical checks.
 - `tests/qa-inventory.md`: functional and visual acceptance inventory.

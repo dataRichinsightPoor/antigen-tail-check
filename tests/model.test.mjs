@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import vm from "node:vm";
+import {WORKER_SOURCE} from "../web/worker-source.js";
 import {parsePopulation as p,population,cdf,hill,residual,compare,sweep,PRESETS} from "../web/model.js";
 const near=(a,b,t=1e-10)=>assert.ok(Math.abs(a-b)<t,`${a} != ${b}`);
 test("exact equal-mean tail example",()=>{
@@ -64,4 +66,12 @@ test("large empirical inputs do not exceed argument limit",()=>{
   const a=population(Array.from({length:100000},(_,i)=>({x:i,count:1})));
   const r=compare(a,a,{lower:0,upper:100000});
   near(r.dGlobal,0);near(r.dBand,0);
+});
+test("generated preview worker agrees with the tested numerical core",()=>{
+  let reply;
+  const self={postMessage:result=>{reply=result;}};
+  vm.runInNewContext(WORKER_SOURCE,{self});
+  self.onmessage({data:{a:PRESETS.tail.a,b:PRESETS.tail.b,config:{threshold:10000,slope:4,lower:1000,upper:100000,meanMargin:5,tailMargin:5}}});
+  assert.equal(reply.error,undefined);near(reply.a.mean,50000);near(reply.r.dGlobal,.8);near(reply.r.residualB,.20051240861273406);
+  assert.equal(reply.series.length,101);
 });

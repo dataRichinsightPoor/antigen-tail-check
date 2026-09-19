@@ -1,13 +1,15 @@
 import {VERSION,PRESETS} from "./model.js";
+import {WORKER_SOURCE} from "./worker-source.js";
 const $=id=>document.getElementById(id);
 const num=x=>new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(x);
 const pct=x=>`${(100*x).toFixed(2)}%`;
 const pp=x=>`${(100*x).toFixed(2)} pp`;
 const controls=["dataA","dataB","origin","unitsA","unitsB","compatible","resolved","notes","threshold","slope","lower","upper","meanMargin","tailMargin"];
-let result=null,worker=null;
+let result=null,worker=null,workerURL=null;
 const imported={A:null,B:null};
 function invalidate(message="Inputs changed. Run the comparison again; previous results are hidden.") {
  if(worker){worker.terminate();worker=null;}
+ if(workerURL){URL.revokeObjectURL(workerURL);workerURL=null;}
  $("run").disabled=false;$("run").textContent="Run comparison";
  result=null;$("output").hidden=true;$("status").textContent=message;
 }
@@ -22,7 +24,8 @@ function resetAttestations(){
 for(const which of ["A","B"]){
  $("data"+which).addEventListener("paste",event=>{
   const text=event.clipboardData.getData("text");
-  if(text.length+$("data"+which).value.length>20000||text.split("\n").length>2000){
+  const editor=$("data"+which),remaining=editor.value.length-(editor.selectionEnd-editor.selectionStart);
+  if(text.length+remaining>20000||text.split("\n").length>2000){
    event.preventDefault();invalidate("Large lists must be imported as a local CSV/TXT file. The text editor is reserved for smaller examples.");
   }
  });
@@ -58,11 +61,12 @@ function run(){
   const metadata={origin:$("origin").value,units:$("unitsA").value,measurementComparabilityAttested:true,tailResolutionAttested:true,notes:$("notes").value,inputA:imported.A?.name??"text editor",inputB:imported.B?.name??"text editor"};
   invalidate("Calculating the distributions and response sweep…");
   $("run").disabled=true;$("run").textContent="Calculating…";
-  worker=new Worker(new URL("./worker.js",import.meta.url),{type:"module"});
+  workerURL=URL.createObjectURL(new Blob([WORKER_SOURCE],{type:"application/javascript"}));
+  worker=new Worker(workerURL);
   const currentWorker=worker;
   worker.onmessage=({data})=>{
    if(worker!==currentWorker)return;
-   worker.terminate();worker=null;$("run").disabled=false;$("run").textContent="Run comparison";
+   worker.terminate();worker=null;URL.revokeObjectURL(workerURL);workerURL=null;$("run").disabled=false;$("run").textContent="Run comparison";
    if(data.error){invalidate(data.error);return;}
    result={...data,metadata};render();
   };
