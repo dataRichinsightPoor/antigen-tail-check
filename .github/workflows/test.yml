@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: '22'
       - name: Build worker and run numerical tests
-        run: npm test
+        run: |
+          node scripts/build-worker.mjs
+          node --test tests/*.test.mjs
       - name: Verify committed worker matches source
-        run: git diff --exit-code -- web/worker-source.js
+        run: git diff --exit-code -- web/worker-source.js web/joint-worker-source.js web/delivery-worker-source.js web/delivery-pd-worker-source.js

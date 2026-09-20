@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Lower uptake, higher delivery | Antigen-tail Check</title>
+ <meta name="description" content="An explicitly synthetic kinetic worked example: separate entry flux, routing, processing, cytosolic payload and exposure.">
+ <link rel="preconnect" href="https://api.fontshare.com">
+ <link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="joint.css"><link rel="stylesheet" href="delivery.css">
+ <script type="module" src="delivery-app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to example</a>
+<header class="top">
+ <a class="brand" href="index.html"><svg viewBox="0 0 32 32" role="img" aria-label="Distribution mark"><path d="M3 26V8M3 26h26M7 23h6v-8h6V7h9" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Data-Rich, Insight-Poor</span></a>
+ <nav aria-label="Main"><a href="delivery-model.md">Transport math</a><a href="delivery-pd-math.md">PD math</a><a href="https://github.com/dataRichinsightPoor/antigen-tail-check">Code</a><a href="coexpression.html">Paired audit</a><button id="d-theme">Light mode</button></nav>
+</header>
+<main id="main">
+ <section class="intro">
+  <p class="eyebrow">99 SMALL PROBLEMS · No. 02 <span>COMPANION WORKED EXAMPLE · SYNTHETIC</span></p>
+  <h1>Lower uptake. Higher productive delivery.</h1>
+  <p class="question">Entering the cell is not the same as completing the delivery.</p>
+  <p class="lede">Follow a prescribed ADC entry flux through routing, processing and payload escape. The example is executable; its parameters are invented. No efficacy or therapeutic ranking is inferred.</p>
+  <nav class="mode-nav" aria-label="Audit modes"><a href="index.html">Single-antigen audit</a><a href="coexpression.html">Paired-antigen audit</a><a href="productive-delivery.html" aria-current="page">Productive-delivery example</a></nav>
+ </section>
+ <section class="workbench">
+ <aside class="controls" id="d-controls">
+  <h2>Challenge the explanation</h2>
+  <label for="d-preset">Worked case</label>
+  <select id="d-preset"><option value="routing">Half the entry, better routing</option><option value="matched">Control: matched routing</option><option value="slow">Counterexample: slow processing in B</option><option value="pulse">Pulse input, then chase</option><option value="ambiguity">Same payload trace, different routes</option><option value="competing">Slow processing meets competing loss</option><option value="equalauc">Equal AUC, different time profiles</option></select>
+  <div class="row"><button id="d-load">Load case</button><button id="d-reset">Reset</button></div>
+  <p class="help">A and B are hypothetical processing environments, not named products. Loading a case replaces all settings.</p>
+  <label for="d-mode">Internalization input</label><select id="d-mode"><option value="continuous">Continuous prescribed entry</option><option value="pulse">Pulse, then zero entry</option></select>
+  <div class="duo"><div><label for="d-horizon">Observe for · h</label><input id="d-horizon" type="number" min=".25" max="168" step="any" value="24"></div><div><label for="d-pulse">Pulse length · h</label><input id="d-pulse" type="number" min=".01" max="168" step="any" value="2" disabled></div></div>
+  <label for="d-nu">Payload yield ν · payload/processed ADC</label><input id="d-nu" type="number" min="1" max="16" step="any" value="1">
+  <p class="help">A fixed effective stoichiometric yield, not a modeled distribution of drug–antibody ratios. Stocks begin at zero.</p>
+  <div id="d-parameters"></div>
+  <p class="help">Competing intact-ADC loss leaves L without producing the active payload tracked here. It is not the same process as loss of already released lysosomal payload. Zero recovers the original topology.</p>
+  <button id="d-run" class="primary">Run example</button><button id="d-cancel" hidden>Cancel calculation</button>
+  <p class="help">J is ADC already entering an endosomal compartment, not extracellular dose or fluorescence. Returned material exits the modeled domain; no re-entry is counted.</p>
+  <p class="help">All calculations stay in this browser. No data upload or persistent storage.</p>
+ </aside>
+ <div class="results">
+  <div id="d-status" class="status" role="status" aria-live="polite"></div>
+  <div id="d-output" hidden>
+   <section class="verdict">
+    <p class="eyebrow">MODEL RESULT · NOT EXPERIMENTAL DATA</p><h2 id="d-headline"></h2><p id="d-interpretation"></p>
+    <div class="metrics">
+     <div><span>Input flux · A / B</span><strong id="d-input"></strong><small>ADC/cell/h while input is on</small></div>
+     <div><span id="d-steady-label">Continuous steady arrival · A / B</span><strong id="d-steady"></strong><small>Payload/cell/h entering the cytosol</small></div>
+     <div><span>Cytosolic AUC · B/A</span><strong id="d-auc"></strong><small id="d-auc-window"></small></div>
+    </div>
+    <p class="d-warning" id="d-time-note"></p>
+   </section>
+   <section class="plotpanel" id="d-profile-panel">
+    <p class="eyebrow">TOTAL EXPOSURE IS NOT ITS TIME HISTORY</p>
+    <h2>Same area. Different biological questions.</h2>
+    <p id="d-profile-verdict"></p>
+    <div class="row"><button id="d-profile-preset">Load equal-AUC example</button><button id="d-profile-match">Match B to A’s AUC</button></div>
+    <p id="d-profile-match-note" class="caption"></p>
+    <p class="help">Loading the example replaces all settings. Matching changes only B’s entry flux, not processing, loss, removal or the shared input schedule. It is not an equipotent-dose calculation. Changing the window or rates does not silently rematch.</p>
+    <div class="d-profile-charts"><canvas id="d-profile-stock" role="img" aria-label="Cytosolic payload amount over time for A and B"></canvas><canvas id="d-profile-cumulative" role="img" aria-label="Fraction of each case's finite-window AUC accumulated over time"></canvas></div>
+    <p class="caption">A: solid teal. B: dashed amber. The right plot normalizes each curve to its own finite-window AUC, even when the two AUCs are unequal. It is not target occupancy or the fraction of molecules delivered.</p>
+    <label for="d-profile-node">Inspect the shared trajectory time</label><input id="d-profile-node" type="range" min="0" max="400" value="400" step="1">
+    <p id="d-profile-inspection" class="caption"></p>
+    <div class="table-scroll"><table id="d-profile-table"><thead><tr><th scope="col">Within the selected 0–T window</th><th scope="col">A</th><th scope="col">B</th></tr></thead><tbody id="d-profile-values"></tbody></table></div>
+    <p class="caption">Peak and AUC quantile times are numerically refined, not selected from the 401 reported nodes. t10, t50 and t90 are times by which 10%, 50% and 90% of that case’s 0–T AUC has accumulated. They are not onset, EC50 or response percentiles. Centroid is exposure-weighted mean clock time; every descriptor is window-dependent.</p>
+    <label for="d-profile-cutoff">Descriptive cytosolic amount cutoff · payload/cell</label><input id="d-profile-cutoff" type="number" min="0" max="1000000000000" step="any" value="1">
+    <p id="d-profile-cutoff-note" class="d-factor-line" aria-live="polite"></p>
+    <p class="help">This arbitrary cutoff is not a pharmacological threshold. Change it to challenge how the descriptive duration ranking depends on the chosen level; durations are restricted to the displayed window.</p>
+    <div class="row"><button id="d-profile-csv">Export profile CSV</button><button id="d-profile-png">Export profile PNG</button></div>
+    <details><summary>What equality of AUC leaves unresolved</summary>
+     <p>For a linear, time-independent effect proportional only to integrated cytosolic amount, equal AUC would give equal values of that particular exposure summary. That is an assumption about the effect model, not a conclusion from the ADC transport model.</p>
+     <p>A peak-sensitive process, a requirement for sustained engagement, saturable target binding, damage repair or a time-varying susceptible state would require additional dynamics and independently supported parameters. These plots identify exposure differences that such hypotheses would need to confront; they do not select the correct hypothesis or predict which profile is more efficacious.</p>
+     <p>Equal 0–T AUC does not imply equal lifetime AUC, equal entered ADC, equal peak, equal onset, or identical late exposure. Use the cohort ledger below to see the exposure still to come. A longer chase can destroy equality that was deliberately constructed at 24 hours.</p>
+    </details>
+   </section>
+   <section class="plotpanel" id="d-pd-panel">
+    <p class="eyebrow">OPTIONAL PHARMACODYNAMIC HYPOTHESIS · NOT EFFICACY</p>
+    <h2>The same area can meet a different biological clock.</h2>
+    <p>AUC is a useful summary. It is not a mechanism. Hold the delivery profiles fixed, then ask which part of an apparent advantage comes from saturation, engagement kinetics or what remains when the assay is read. The comparison is useful precisely because those answers need not agree.</p>
+    <div class="d-pd-flow" role="img" aria-label="Prescribed free cytosolic payload drives engagement, which forms a recoverable downstream signal. There is no feedback to payload.">
+     <span>P(t)<small>Prescribed free amount</small></span><span aria-hidden="true">→</span><span>O(t)<small>Engagement with memory</small></span><span aria-hidden="true">→</span><span>D(t)<small>Formation competes with recovery</small></span>
+    </div>
+    <p class="d-warning">This is an original, synthetic PD overlay. D is an arbitrary excess signal, not DNA damage counts, viability, tumor response or a clinical endpoint. All PD parameters are shared between A and B.</p>
+    <label for="d-pd-preset">PD hypothesis only · delivery inputs are preserved</label>
+    <select id="d-pd-preset"><option value="default">Saturation + memory</option><option value="slow">Slow engagement, same K</option><option value="norepair">No signal recovery</option><option value="fastrepair">Fast signal recovery</option></select>
+    <button id="d-pd-load">Load PD hypothesis</button>
+    <div id="d-pd-parameters" class="d-pd-parameters"></div>
+    <p class="help">K is an effective amount scale, not a molar Kd or EC50. At fixed K, changing b changes both association and disengagement speed. Presets replace only these four PD fields; delivery and AUC matching are untouched.</p>
+    <label class="d-pd-check"><input id="d-pd-assume" type="checkbox"> Use Pcyt as prescribed target-accessible free amount, with a fixed target pool and negligible payload sequestration.</label>
+    <p class="help">This is a one-way approximation, not a coupled binding mass balance. It can fail when target binding materially depletes free payload. No concentration conversion, target abundance or validation of that approximation is supplied.</p>
+    <div class="row"><button id="d-pd-run">Calculate hypothetical PD</button><button id="d-pd-cancel" hidden>Cancel PD calculation</button></div>
+    <p id="d-pd-status" class="caption" role="status" aria-live="polite"></p>
+    <div id="d-pd-output" hidden>
+     <p id="d-pd-verdict" class="d-factor-line"></p>
+     <p id="d-pd-contrast"></p>
+     <section class="d-pd-audit" aria-labelledby="d-pd-audit-title">
+      <h3 id="d-pd-audit-title">Where does the endpoint ratio come from?</h3>
+      <p>The same endpoint can reward a different history. This identity separates four dependent accounting terms; it does not identify four independent biological causes.</p>
+      <p id="d-pd-factorization" class="d-factor-line"></p>
+      <div class="table-scroll"><table id="d-pd-factor-table"><thead><tr><th scope="col">Accounting term</th><th scope="col">A</th><th scope="col">B</th><th scope="col">B/A</th></tr></thead><tbody id="d-pd-factors"></tbody></table></div>
+      <p class="caption">C = K∫Oeq dt / Q; M = ∫O dt / ∫Oeq dt; R = D(T) / (s∫O dt). C and R lie between 0 and 1; M can exceed 1 because kinetic engagement can persist after the equilibrium reference falls. M is not an efficiency.</p>
+      <details><summary>Why more engagement is not free</summary>
+       <p>Integrating the engagement equation gives Q = K∫O dt + (K/b)O(T) + ∫PO dt. Exposure is partitioned into an integrated-engagement term, residual engagement at the observation boundary, and exposure coinciding with already occupied targets. All three terms are nonnegative under this model, so ∫O dt ≤ Q/K even when ∫O dt exceeds ∫Oeq dt.</p>
+       <p id="d-pd-accounting"></p>
+       <p>The overlap term is inferred by subtraction, not independently measured or integrated. This is an algebraic interpretation, not a second numerical validation or proof that occupied-target exposure is therapeutically wasted.</p>
+      </details>
+     </section>
+     <p id="d-pd-memory" class="caption"></p>
+     <div class="d-profile-charts"><canvas id="d-pd-engagement" role="img" aria-label="Hypothetical kinetic engagement versus time"></canvas><canvas id="d-pd-signal" role="img" aria-label="Hypothetical recoverable downstream signal versus time"></canvas></div>
+     <p class="caption">A solid teal; B dashed amber. Fractional engagement and arbitrary downstream signal are different quantities. No signal cutoff or killing rule is assumed.</p>
+     <label for="d-pd-node">Inspect the shared trajectory time</label><input id="d-pd-node" type="range" min="0" max="400" step="1" value="400">
+     <p id="d-pd-inspect" class="caption"></p>
+     <div class="d-pd-audit">
+      <h3>The assay clock can change the ordering.</h3>
+      <p id="d-pd-clock"></p>
+      <button id="d-pd-crossover">Inspect first sampled reversal</button>
+      <p id="d-pd-clock-current" class="caption"></p>
+      <p class="help">This scans the 401 reporting times. Brackets are not refined crossing times, and brief reversals may be missed. “Unresolved” uses a numerical tolerance, not a detection limit, equivalence margin or biological threshold. Equal AUC refers to the selected full window, not every earlier time.</p>
+     </div>
+     <div class="table-scroll"><table id="d-pd-table"><thead><tr><th scope="col">Conditional PD observable · within 0–T</th><th scope="col">A</th><th scope="col">B</th></tr></thead><tbody id="d-pd-values"></tbody></table></div>
+     <p id="d-pd-ledger" class="caption"></p>
+     <p class="help">AU means arbitrary units. A large endpoint ratio can reflect near-complete recovery in the reference, not a large absolute effect. Compare the two absolute signals and their histories; no detection limit or uncertainty is modeled.</p>
+     <div class="row"><button id="d-pd-json">Export PD JSON</button><button id="d-pd-csv">Export PD CSV</button><button id="d-pd-png">Export PD PNG</button></div>
+    </div>
+    <details id="d-pd-science"><summary>Three assumptions, three different questions</summary>
+     <p>Linear control: dD/dt = s(P/K) − rD. With r = 0, D(T) = s·AUC/K, so equal AUC gives equal endpoints under these shared assumptions. With recovery, the endpoint depends on when exposure occurred, even without saturation.</p>
+     <p>Instantaneous saturation: Oeq = P/(K + P), with dDeq/dt = sOeq − rDeq. Integrating a saturable function is not equivalent to applying it to an integrated exposure. This is a counterfactual equilibrium reference, not a declaration that binding is fast.</p>
+     <p>Kinetic engagement: dO/dt = b[(P/K)(1 − O) − O]. Its instantaneous relaxation time is 1/[b(1 + P/K)]. At fixed K, slower b preserves the equilibrium curve while changing whether the profile can approach it. The unforced half-time ln(2)/b is not, by itself, proof of stronger action.</p>
+     <p>Recoverable signal: dD/dt = sO − rD, so D(T) = s∫₀ᵀ exp[−r(T−t)]O(t)dt. Recovery weights later engagement more strongly at the endpoint. Removing recovery gives s∫Odt, not s·payload AUC. The ledger distinguishes signal that formed from signal still present.</p>
+     <p>O and D start at zero. The target pool is fixed, payload is not depleted by binding, and feedback, cell-cycle dependence, target-specific catalysis, nonlinear repair and cell death are absent. Target renewal is not separately identified; treating b as including renewal requires replenishment of a constant pool in the unengaged state.</p>
+     <p>Different biological processes can produce similar delayed readouts. Time-resolved free payload, engagement and downstream measurements would be needed to distinguish them. This is a hypothesis generator, not a fitted model or an assay-validation claim.</p>
+     <p>Conceptual background: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4945762/" target="_blank" rel="noopener">Vauquelin, 2016: binding kinetics versus affinity</a>; <a href="https://link.springer.com/article/10.1007/BF01061691" target="_blank" rel="noopener">Dayneka, Garg and Jusko, 1993: response production and dissipation</a>. No numerical parameters, therapeutic constructs or code were imported from these publications. <a href="delivery-pd-math.md">Full PD derivation and scope</a>.</p>
+    </details>
+    <details id="d-pd-experiment"><summary>What would distinguish these explanations?</summary>
+     <p>These are proposed discrimination tests, not validated protocols. A good experiment should threaten the preferred explanation, not merely provide another endpoint it can accommodate.</p>
+     <h3>Saturation: does peak compression explain the result?</h3>
+     <p>Compare engagement histories under measured target-accessible free-payload profiles that differ in shape. Test whether one equilibrium amount–engagement curve can explain both rising and falling phases. Equal nominal dose or equal total intracellular payload is not the matching condition used here. A large C ratio motivates this test; it does not establish saturation experimentally.</p>
+     <h3>Engagement memory: does the same amount mean the same engagement?</h3>
+     <p>Pair engagement and accessible-payload measurements on the rising and falling limbs at similar P. The finite-rate hypothesis permits different O at the same P. Such a loop would challenge a purely instantaneous mapping, but would not uniquely identify binding kinetics: delayed access, changing target pools and population mixtures remain alternative explanations outside this model.</p>
+     <h3>Recovery: is the downstream tail still being driven?</h3>
+     <p>Once engagement is demonstrably negligible, the declared model predicts D′ = −rD, hence exponential recovery. Continued signal formation from persistent O cannot be separated from slow recovery by a downstream trace alone. External washout is not proof that intracellular exposure or engagement has ended.</p>
+     <h3>ADC interpretation: keep the missing steps visible.</h3>
+     <p>A bispecific format is not assigned a routing benefit, and a cytotoxic payload is not assigned a killing coefficient. For irreversible target modification, catalytic damage, cell-cycle-dependent susceptibility or proliferative recovery, the present engagement/signal equations are insufficient. Add a mechanism only when its state, units, discriminating measurement and unsupported alternatives can be stated.</p>
+     <p class="caption">Practical output: a time-resolved free-payload → engagement → downstream-readout comparison, with an explicitly tested chase period. The tool does not optimize sampling times, fit parameters, model noise or establish assay validity.</p>
+    </details>
+   </section>
+   <section class="tablepanel" id="d-boundary-panel">
+    <h2>Where the advantage ends</h2>
+    <p class="caption">A one-parameter challenge, not an uncertainty interval. Hold all rates, yield and A fixed; change only B’s entry.</p>
+    <p id="d-factor-line" class="d-factor-line"></p>
+    <p id="d-retention-line" class="caption"></p>
+    <p id="d-boundary"></p>
+    <p id="d-boundary-scope" class="caption"></p>
+   </section>
+   <section class="tablepanel" id="d-competition-panel">
+    <h2>Processing is now a race, not a waiting room</h2>
+    <p id="d-competition"></p>
+    <p id="d-residence" class="caption"></p>
+    <div class="row"><button id="d-competing">Load competing-loss case</button><button id="d-no-loss">Set both intact-loss rates to zero</button></div>
+    <p class="help">The first button replaces the settings. The second preserves every other input, isolating the effect of this loss route; it requires processing rates of at least 0.001 h⁻¹ in both cases.</p>
+    <p class="caption">This sink means irreversible failure to generate the active-payload species modeled here. It does not identify a particular degradation pathway, transporter, catabolite or therapeutic mechanism.</p>
+   </section>
+   <section class="tablepanel" id="d-exposure-panel">
+    <p class="eyebrow">THE CURRENT SIMULATION · AN EXACT MODEL DECOMPOSITION</p>
+    <h2>Yield is not timing. Exposure is not efficacy.</h2>
+    <p id="d-exposure-verdict"></p>
+    <p id="d-exposure-factors" class="d-factor-line"></p>
+    <p class="caption">Finite-window factor = fraction of eventual cohort AUC realized by the observation time. It is not the fraction of payload delivered. All factors compare B/A; the shared payload yield and input duration cancel.</p>
+    <div class="table-scroll"><table id="d-exposure-table"><thead><tr><th scope="col">What the model distinguishes</th><th scope="col">A</th><th scope="col">B</th></tr></thead><tbody id="d-exposure-values"></tbody></table></div>
+    <p id="d-exposure-ledger" class="caption"></p>
+    <details id="d-exposure-science"><summary>Why faster disappearance can mean worse delivery</summary>
+     <p id="d-exposure-timing"></p>
+     <p id="d-exposure-elasticity"></p>
+     <p>In this constant-hazard model, an intact lysosomal molecule exits at total rate p + ℓ. Conditional on productive processing, its waiting time is still 1/(p + ℓ), while its chance of that productive exit is p/(p + ℓ). Increasing loss therefore shortens the wait among successful trajectories but reduces their number. A faster-looking successful subset does not establish a better route.</p>
+     <p>The remaining-exposure ledger weights each current compartment by its remaining productive probability and cytosolic residence. Irreversibly lost material receives no future credit. For continuous entry, the ledger deliberately asks what would happen if entry stopped now; it does not count future doses.</p>
+    </details>
+    <details id="d-exposure-evidence"><summary>What would make this useful for a bispecific or alternative-format ADC?</summary>
+     <p>Use a format-specific claim to choose the unresolved measurement, not to rename a fitted rate. If the claim is improved entry, distinguish bound from internalized material and constrain the entry time course. If it is productive trafficking, challenge the partition between intact conjugate, released lysosomal species and cytosolic payload. If it is prolonged activity, distinguish cytosolic residence from target engagement and downstream effect.</p>
+     <p>A paired-antigen audit can test the joint expression distribution. It cannot supply the joint occupancy, binding geometry, trafficking rates or co-internalization needed to convert a bispecific design into these inputs. The two tools remain separate until measurements justify their connection.</p>
+     <p>One AUC value cannot identify its six factors. Even an entire cytosolic trace can leave different internal mechanisms indistinguishable, as the built-in counterexample shows. Choose a species-resolved time course that separates the competing explanations; additional precision on an ambiguous endpoint does not remove the ambiguity.</p>
+     <p>Equal AUC also does not imply equal efficacy. This transport audit contains no effect model; the separate opt-in PD layer tests hypothetical engagement and an arbitrary recoverable signal, not measured damage, cell-cycle dependence or killing. AUC is an exposure summary whose pharmacodynamic relevance must be established separately, not a universal currency for comparing payloads.</p>
+    </details>
+   </section>
+   <section class="plotpanel" id="d-map-panel">
+    <p class="eyebrow">A FIXED REFERENCE · TWO COMPETING RATES IN B</p>
+    <h2>Where does the lower-entry advantage survive?</h2>
+    <p id="d-map-summary"></p>
+    <p id="d-map-boundary" class="d-factor-line"></p>
+    <canvas id="d-map" role="img" aria-label="Processing-versus-loss map. Horizontal axis: B productive processing. Vertical axis: B competing intact-lysosomal loss. Use the numeric inspector below for an accessible alternative."></canvas>
+    <p class="d-map-legend"><span class="d-map-above">B above A</span><span class="d-map-below">B below A</span><span>Dashed line: tie</span><span>Circle: current B</span><span>Diamond: inspected point</span></p>
+    <p class="caption">Both axes include zero using log10(1 + rate / 0.001), not a standard logarithmic scale. Rates span 0–10 h⁻¹. Hatched cells have total exit below the supported 0.001 h⁻¹ minimum. Colors show an algebraic comparison, not a probability of success.</p>
+    <div class="duo">
+     <div><label for="d-map-proc">Inspect B processing · h⁻¹</label><input id="d-map-proc" type="number" min="0" max="10" step="any"></div>
+     <div><label for="d-map-loss">Inspect B intact loss · h⁻¹</label><input id="d-map-loss" type="number" min="0" max="10" step="any"></div>
+    </div>
+    <p id="d-map-point" class="node-readout" aria-live="polite"></p>
+    <div class="row"><button id="d-map-apply">Apply inspected rates to B</button><button id="d-map-current">Inspect current B</button></div>
+    <p class="help">Click the map or enter exact rates to inspect without changing the simulation. Apply updates only B’s processing and intact-loss rates, then recomputes its time course. Every other model input stays fixed.</p>
+    <div class="row"><button id="d-map-csv">Map grid · CSV</button><button id="d-map-png">Map · PNG</button></div>
+    <p id="d-map-scope" class="d-warning"></p>
+    <p class="caption">The full JSON report includes the 81 × 81 grid, current B point, fixed parameters and analytical boundary. The arbitrary displayed rate domain is not a biological plausibility range; region area has no probabilistic interpretation.</p>
+   </section>
+   <section class="plotpanel" id="d-auc-map-panel">
+    <p class="eyebrow">SAME RATES · THE ACTUAL OBSERVATION WINDOW</p>
+    <h2>Does the advantage arrive in time?</h2>
+    <p id="d-auc-map-summary"></p>
+    <p id="d-auc-map-boundary" class="d-factor-line"></p>
+    <canvas id="d-auc-map" role="img" aria-label="Finite-time cytosolic AUC map. Horizontal axis: B productive processing. Vertical axis: B competing intact-lysosomal loss. Numeric inspection below is an accessible alternative."></canvas>
+    <p class="d-map-legend"><span class="d-map-above">B AUC above A</span><span class="d-map-below">B AUC below A</span><span>Solid line: approximate AUC tie</span><span>Circle: current B</span><span>Diamond: inspected point</span></p>
+    <p class="caption">AUC is the integral of active cytosolic payload from zero to the selected observation time, in payload·h/cell. Both axes use log10(1 + rate / 0.001) over 0–10 h⁻¹. Hatched points have total exit below 0.001 h⁻¹. Color is a deterministic comparison, not a probability.</p>
+    <div class="duo">
+     <div><label for="d-auc-map-proc">Inspect B processing · h⁻¹</label><input id="d-auc-map-proc" type="number" min="0" max="10" step="any"></div>
+     <div><label for="d-auc-map-loss">Inspect B intact loss · h⁻¹</label><input id="d-auc-map-loss" type="number" min="0" max="10" step="any"></div>
+    </div>
+    <p id="d-auc-map-point" class="node-readout" aria-live="polite"></p>
+    <div class="row"><button id="d-auc-map-apply">Apply inspected rates to B</button><button id="d-auc-map-current">Inspect current B</button></div>
+    <p class="help">Click or enter exact rates to inspect without changing the run. Apply changes only B’s processing and intact-loss rates and recomputes both maps and the trajectories. Each map has its own temporary inspector; both current-point markers follow the applied B settings.</p>
+    <div class="row"><button id="d-auc-map-csv">AUC map grid · CSV</button><button id="d-auc-map-png">AUC map · PNG</button></div>
+    <p id="d-auc-map-scope" class="d-warning"></p>
+    <p class="caption">The 81 × 81 grid uses the same linear equations as the time-course solver, evaluated by a matrix exponential with the prescribed pulse boundary retained. The full JSON contains both maps and numerical-method metadata. No payload target occupancy, killing, efficacy, uncertainty distribution or fitted biological rates are inferred.</p>
+   </section>
+   <section class="tablepanel">
+    <h2>Separate the ledger from the signal</h2>
+    <p class="caption">A stock is not a flux. Cumulative entry is not retained intracellular ADC, and none of these quantities is automatically a fluorescence signal.</p>
+    <label for="d-node">Inspect time point</label><input type="range" id="d-node" min="0" max="400" value="400">
+    <p id="d-time" class="node-readout" aria-live="polite"></p>
+    <div class="table-scroll"><table id="d-table"><thead><tr><th>Quantity and units</th><th>A</th><th>B</th></tr></thead><tbody id="d-values"></tbody></table></div>
+   </section>
+   <div class="delivery-plots delivery-section">
+    <section class="plotpanel"><h3>Retained intact ADC</h3><p class="caption">E + L · ADC/cell</p><canvas id="d-chart-intact" role="img" aria-label="Intact intracellular ADC over time; select a time point for numerical values."></canvas></section>
+    <section class="plotpanel"><h3>Active payload arrival</h3><p class="caption">kesc × Plys · payload/cell/h</p><canvas id="d-chart-flux" role="img" aria-label="Cytosolic payload arrival flux over time; select a time point for numerical values."></canvas></section>
+    <section class="plotpanel"><h3>Active cytosolic payload</h3><p class="caption">Pcyt · payload/cell, not concentration</p><canvas id="d-chart-cyt" role="img" aria-label="Active cytosolic payload over time; select a time point for numerical values."></canvas></section>
+    <section class="plotpanel"><h3>Cytosolic exposure accumulated</h3><p class="caption">Integral of Pcyt · payload·h/cell</p><canvas id="d-chart-auc" role="img" aria-label="Cumulative cytosolic payload exposure; select a time point for numerical values."></canvas></section>
+   </div>
+   <p class="caption"><span class="d-key"></span>A · solid <span class="d-key b"></span>B · dashed. All curves are computed from invented inputs; numerical trajectories are downloadable.</p>
+   <section class="plotpanel" id="d-observation-panel">
+    <h2>A beautiful trace is not a unique mechanism</h2>
+    <p id="d-observation-summary"></p>
+    <div class="row"><button id="d-ambiguity">Load the indistinguishable-payload case</button></div>
+    <p class="help">This replaces both cases with a synthetic counterexample. Twice the routing fraction is offset by half the escape fraction, preserving the cytosolic time course while changing upstream inventories.</p>
+    <label for="d-observable">Inspect a candidate readout</label>
+    <select id="d-observable"><option value="Pcyt">Active cytosolic payload</option><option value="L">Intact lysosomal ADC</option><option value="Plys">Released lysosomal payload</option><option value="recycled">Cumulative returned ADC</option><option value="E">Intact endosomal ADC</option><option value="intactLoss">Cumulative nonproductive loss from intact L</option></select>
+    <canvas id="d-chart-observation" role="img" aria-label="Selected candidate readout for both synthetic cases. Numerical values follow the chart."></canvas>
+    <label for="d-observe-node">Inspect time point · synchronized with the table</label>
+    <input type="range" id="d-observe-node" min="0" max="400" value="400">
+    <p id="d-observation-values" class="node-readout" aria-live="polite"></p>
+    <p id="d-observation-note" class="caption"></p>
+    <p class="caption">A separation here is a mathematical prediction, not proof that an assay can resolve it. No noise, measurement calibration or optimal experimental-design calculation is included. Numerical values also appear in the time-point table and full JSON/CSV exports.</p>
+    <details><summary>Why even a time course can leave the mechanism unresolved</summary>
+     <p>For zero initial stocks, the transfer function from internalization input J to cytosolic payload is:</p>
+     <div class="d-equations"><div>P<sub>cyt</sub>(s)/J(s) = ν k<sub>lys</sub> k<sub>proc</sub> k<sub>esc</sub> / [(s + k<sub>lys</sub> + k<sub>rec</sub>)(s + k<sub>proc</sub> + k<sub>loss,I</sub>)(s + k<sub>esc</sub> + k<sub>loss,L</sub>)(s + k<sub>loss,C</sub>)]</div></div>
+     <p class="caption">s is the Laplace variable, with units h⁻¹. Matching these exit-rate sums and the numerator makes the cytosolic response identical for the same input history. The preset changes internal rates while preserving that function; a pulse alone cannot distinguish this pair. Failure to satisfy this sufficient condition does not establish identifiability.</p>
+    </details>
+   </section>
+   <section class="tablepanel"><h2>Keep every assumption attached</h2>
+    <div class="row"><button id="d-json">Full report · JSON</button><button id="d-csv">All time points · CSV</button><button id="d-png">Four charts · PNG</button></div>
+    <p class="help" id="d-integrity"></p>
+   </section>
+  </div>
+  <section class="plotpanel"><h2>The model is a route, not a response claim</h2>
+   <div id="d-schematic" class="schematic-frame"></div>
+   <p class="caption">E and L contain intact ADC; Plys and Pcyt contain payload. The competing sink from L is counted in ADC equivalents, distinct from released-payload loss out of Plys. Arrows are modeled first-order transfers, not measured rates; processing multiplies the count by yield ν.</p>
+   <button id="d-svg">Download pathway · SVG</button>
+  </section>
+  <section class="tablepanel">
+   <h2>The mechanism behind the reversal</h2>
+   <p>For constant entry and the stated linear assumptions, steady cytosolic arrival equals entry × payload yield × routing fraction × processing-success fraction × escape fraction. B wins only when its downstream delivery factors more than compensate for its lower input.</p>
+   <div class="d-equations" aria-label="Steady-state arrival and payload equations">
+    <div>F<sub>cyt,ss</sub> = ν J [k<sub>lys</sub>/(k<sub>lys</sub> + k<sub>rec</sub>)] [k<sub>proc</sub>/(k<sub>proc</sub> + k<sub>loss,I</sub>)] [k<sub>esc</sub>/(k<sub>esc</sub> + k<sub>loss,L</sub>)]</div>
+    <div>P<sub>cyt,ss</sub> = F<sub>cyt,ss</sub> / k<sub>loss,C</sub></div>
+   </div>
+   <p class="caption">The routing probability applies to one internalization episode. No receptor binding, repeated uptake, payload target binding, spatial bystander transfer or cell killing is modeled.</p>
+   <details><summary>When faster processing changes eventual flux</summary>
+    <p>With intact-loss set to zero, processing is the only exit from intact lysosomal ADC and its positive rate changes delay and inventory, not eventual throughput. With competing loss, the fraction processed successfully is kproc / (kproc + kloss,I); slower processing now allows more material to leave through the nonproductive sink.</p>
+    <p class="caption">A shorter mean residence time is not automatically better delivery: increasing loss shortens residence while reducing processing success. A pulse has zero eventual arrival flux, even when its accumulated delivery differs.</p>
+   </details>
+   <details><summary>Which experiments would distinguish these explanations?</summary>
+    <p>My proposed workflow separates surface-associated from internalized material, follows intact conjugate and released species over time, and uses a pulse–chase design to challenge routing and persistence. A total fluorescence plateau alone cannot identify every rate in this chain.</p>
+    <p class="caption">Cellular processing measurements and their proxy limitations are discussed by <a href="https://dspace.mit.edu/bitstream/handle/1721.1/103801/12248_2016_9892_ReferencePDF.pdf?sequence=1&amp;isAllowed=y">Maass et al., 2016</a>; staged intracellular and multiscale calibration is described by <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11576657/">Scheuher et al., 2024, online 2023</a>. Those studies motivate the distinctions; they do not validate these invented parameters.</p>
+   </details>
+   <p class="caption"><a href="delivery-model.md">Full equations, assumptions, worked values and solver checks</a> · <a href="delivery-model.js" download>Calculation code</a> · <a href="mechanistic-modeling-reading-guide.md">Scientific reading guide</a></p>
+  </section>
+ </div>
+ </section>
+ <footer class="delivery-section"><p>Data-Rich, Insight-Poor · Useful models for assumptions with expensive ambitions.</p><p>Public research-use alpha v0.2.0-alpha. Independent synthetic worked example. No therapeutic construct, proprietary parameter set or clinical inference.</p></footer>
+</main>
+</body>
+</html>

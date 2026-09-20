@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coexpression Check | Antigen-tail Check</title>
+<meta name="description" content="Paired-antigen comparison, honest marginal overlap bounds, and a mechanism-evidence map. Not an ADC efficacy predictor.">
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="joint.css">
+<script type="module" src="joint-app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to comparison</a>
+<header class="top">
+ <a class="brand" href="index.html"><svg viewBox="0 0 32 32" role="img" aria-label="Distribution mark"><path d="M3 26V8M3 26h26M7 23h6v-8h6V7h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 19h5v-3h11v-8h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/></svg><span>Data-Rich, Insight-Poor</span></a>
+ <nav aria-label="Main"><a href="joint-model.md">The math</a><a href="https://github.com/dataRichinsightPoor/antigen-tail-check">GitHub</a><button id="j-theme" type="button">Light mode</button></nav>
+</header>
+<main id="main">
+<section class="intro">
+ <p class="eyebrow">99 SMALL PROBLEMS · No. 02 <span>EXTENSION PREVIEW · v0.2.0-alpha</span></p>
+ <h1>Coexpression Check</h1>
+ <p class="question">Two targets. Same cells?</p>
+ <p class="lede">Audit what “expression-matched” actually preserves. Compare same-cell pairing, bound what separate measurements cannot identify, and locate the next mechanistic question.</p>
+ <nav class="mode-nav" aria-label="Audit modes"><a href="index.html">Single-antigen audit</a><a href="coexpression.html" aria-current="page">Paired / marginal audit</a><a href="#mechanism">Mechanism map</a><a href="productive-delivery.html">Productive-delivery example</a></nav>
+</section>
+<section class="workbench" aria-label="Coexpression comparison">
+<aside class="controls" id="j-controls">
+ <h2>Define the comparison</h2>
+ <label for="j-mode">What was measured?</label>
+ <select id="j-mode"><option value="paired">Paired X/Y on the same cells</option><option value="marginal_bounds">Separate X and Y distributions</option></select>
+ <label for="j-preset">Synthetic case</label>
+ <select id="j-preset"><option value="opposite">Matched marginals, opposite pairing</option><option value="identical">Identical paired populations</option><option value="ties">Values exactly at the cutoffs</option><option value="zero">All values zero</option></select>
+ <div class="row"><button id="j-load" type="button">Load case</button><button id="j-reset" type="button">Reset</button></div>
+ <p class="help">Invented examples only. Loading a case replaces inputs and clears the evidence panel.</p>
+ <details id="j-data-panel">
+  <summary>Population inputs &amp; comparability</summary>
+  <label for="j-origin">Data provenance</label><select id="j-origin"><option value="synthetic">Synthetic / illustrative</option><option value="empirical">Empirical observations</option></select>
+  <div class="duo"><div><label for="j-targetX">X target label</label><input id="j-targetX" value="Antigen X" maxlength="80"></div><div><label for="j-targetY">Y target label</label><input id="j-targetY" value="Antigen Y" maxlength="80"></div></div>
+  <div id="j-units"></div>
+  <p class="help">Corresponding axes must match across A and B. X and Y may use different scales. ABC is not automatically receptor count; MESF is not ABC. No X:Y ratio is calculated.</p>
+  <div id="j-inputs"></div>
+  <p class="help" id="j-format"></p>
+  <label class="check"><input type="checkbox" id="j-pairing"><span id="j-pairing-label">X and Y in each row are observations from the same cell, or exact paired-event multiplicities.</span></label>
+  <label class="check"><input type="checkbox" id="j-compatible">Corresponding axes use shared or validated-compatible measurement mappings, staining and population gates.</label>
+  <label class="check"><input type="checkbox" id="j-resolved">Compared ranges are quantitatively resolved, without clipping, hidden censoring, saturation or positivity-only gating.</label>
+  <label for="j-notes">Provenance / calibration / replicate notes</label>
+  <textarea id="j-notes" rows="3" maxlength="2000" placeholder="Required for empirical data. Do not enter confidential information."></textarea>
+  <p class="help">Simultaneous staining does not prove therapeutic co-engagement or absence of detection-reagent interference.</p>
+ </details>
+ <fieldset><legend>Descriptive cutoffs</legend>
+  <div class="duo"><div><label for="j-tx">X cutoff</label><input id="j-tx" type="number" min="0" max="1000000000000" step="any" value="10000"></div><div><label for="j-ty">Y cutoff</label><input id="j-ty" type="number" min="0" max="1000000000000" step="any" value="10000"></div></div>
+  <p class="help">Low includes equality: value ≤ cutoff. High means value &gt; cutoff. Cutoffs are not functional thresholds.</p>
+ </fieldset>
+ <label class="check"><input id="j-scenarios" type="checkbox">Enable hypothetical score scenarios (not efficacy)</label>
+ <fieldset id="j-score-inputs" hidden><legend>Score parameters, separate from cutoffs</legend>
+  <div class="duo"><div><label for="j-kx">X midpoint Kx</label><input id="j-kx" type="number" value="10000" min="0.000001" max="1000000000000" step="any"></div><div><label for="j-ky">Y midpoint Ky</label><input id="j-ky" type="number" value="10000" min="0.000001" max="1000000000000" step="any"></div></div>
+  <div class="duo"><div><label for="j-hx">X slope hx</label><input id="j-hx" type="number" value="2" min=".1" max="20" step="any"></div><div><label for="j-hy">Y slope hy</label><input id="j-hy" type="number" value="2" min=".1" max="20" step="any"></div></div>
+  <p class="help">u = Hill(X; Kx, hx), v = Hill(Y; Ky, hy). Product: uv. Either-route: u + v − uv. Midpoints share their corresponding input-axis units. Neither map is inferred from a therapeutic format.</p>
+ </fieldset>
+ <button class="primary" id="j-run" type="button">Run audit</button><button id="j-cancel" type="button" hidden>Cancel calculation</button>
+ <p class="help">Local calculations, no data-upload endpoint and no persistent storage. Editors: 20,000 characters; files: 5 MB and 100,000 rows each. External fonts load without your entered data.</p>
+</aside>
+<div class="results">
+ <div id="j-status" class="status" role="status" aria-live="polite"></div>
+ <div id="j-output" hidden>
+  <section class="verdict">
+   <p class="eyebrow" id="j-provenance"></p><h2 id="j-headline"></h2><p id="j-interpretation"></p>
+   <div class="metrics">
+    <div><span>Double-high · A / B</span><strong id="j-double"></strong><small>Observed fraction, or feasible interval</small></div>
+    <div><span>Either-high · A / B</span><strong id="j-either"></strong><small>Not a susceptible-cell fraction</small></div>
+    <div><span id="j-distance-label">Quadrant separation DQ</span><strong id="j-distance"></strong><small id="j-distance-note"></small></div>
+   </div>
+  </section>
+  <section class="tablepanel"><h2>What the measurements establish</h2>
+   <div class="table-scroll"><table><caption class="help">X and Y are compared separately across A and B.</caption><thead><tr><th>Marginal quantity</th><th>A</th><th>B</th><th>CDF separation</th></tr></thead><tbody id="j-marginal-table"></tbody></table></div>
+   <div class="table-scroll"><table><caption class="help">All differences are B minus A. The first quadrant letter is X.</caption><thead><tr><th id="j-table-kind">Quadrant / fraction</th><th>A</th><th>B</th><th>B − A</th></tr></thead><tbody id="j-quadrants"></tbody></table></div>
+   <p class="caption" id="j-bound-note"></p>
+  </section>
+  <section class="plotpanel" id="j-paired-plots"><h2>Same marginals. Inspect the pairing.</h2>
+   <div class="joint-plots"><div><h3 class="popA">Population A · circles</h3><canvas id="j-plotA" role="img" aria-label="Population A joint density; exact fractions are in the quadrant table."></canvas></div><div><h3 class="popB">Population B · squares</h3><canvas id="j-plotB" role="img" aria-label="Population B joint density; exact fractions are in the quadrant table."></canvas></div></div>
+   <p class="caption">Log₁₀(value + 1) display only. Marker area encodes event weight in display bins; exact input pairs, not bins, drive calculations. Coordinates do not represent physical cell positions.</p>
+  </section>
+  <section class="plotpanel"><h2>Where the cutoff choice matters</h2>
+   <p class="caption">Exact calculations at 51 × 51 selected cutoffs. A grid is not a global equivalence test.</p>
+   <div class="duo"><div><label for="j-grid-metric">Quantity</label><select id="j-grid-metric"><option value="q">Double-high</option><option value="e">Either-high</option><option value="LL">Double-low</option></select></div><div><label for="j-grid-view">View</label><select id="j-grid-view"><option value="delta">B minus A</option><option value="a">Population A</option><option value="b">Population B</option></select></div></div>
+   <div id="j-grid-bound-wrap" hidden><label for="j-grid-bound">Pointwise feasible interval endpoint</label><select id="j-grid-bound"><option value="0">Lower bound</option><option value="1">Upper bound</option></select></div>
+   <canvas id="j-grid" role="img" aria-label="Threshold grid. Select a numerical node with the labeled controls below; all nodes can be downloaded."></canvas>
+   <p id="j-grid-summary" class="caption"></p>
+   <div class="duo"><div><label for="j-grid-x">X node · 0–50</label><input type="range" min="0" max="50" value="25" id="j-grid-x"></div><div><label for="j-grid-y">Y node · 0–50</label><input type="range" min="0" max="50" value="25" id="j-grid-y"></div></div>
+   <p id="j-node" class="node-readout" aria-live="polite"></p>
+  </section>
+  <section class="tablepanel" id="j-score-results" hidden><h2>What the response assumption changes</h2>
+   <p class="caption" id="j-score-formula"></p>
+   <div class="table-scroll"><table><thead><tr><th>Dimensionless hypothetical score</th><th>A</th><th>B</th></tr></thead><tbody id="j-scores"></tbody></table></div>
+   <p class="caption">Independence removes same-cell association; mean-only scoring also removes marginal heterogeneity. Neither is a measured response. Product-score pairing effect = Cov(u,v); either-route pairing effect = −Cov(u,v).</p>
+  </section>
+  <section class="tablepanel"><h2>Keep the result reproducible</h2><div class="row"><button id="j-json" type="button">Full report · JSON</button><button id="j-csv" type="button">Threshold grid · CSV</button></div>
+   <p class="help">JSON includes original event multiplicities, settings, evidence notes and limitations. Exports may contain sensitive user-supplied data. No p-values, confidence intervals or efficacy estimates.</p>
+  </section>
+ </div>
+ <section class="plotpanel" id="pairing-schematic">
+  <h2>Why the pairing matters</h2><p class="caption">A synthetic schematic, not observed cells. Both populations have 50% X-high and 50% Y-high.</p>
+  <div id="j-pairing-svg" class="schematic-frame"></div>
+  <p class="caption">Only A places both targets on the same cells. Separate histograms permit either arrangement; they cannot select between them.</p>
+  <button id="j-download-pairing" type="button">Download pairing schematic · SVG</button>
+ </section>
+ <section class="tablepanel" id="scientific-value">
+  <p class="eyebrow">WHY THIS SMALL PROBLEM MATTERS</p><h2>Different pairing is not yet a therapeutic advantage.</h2>
+  <p>In the synthetic example above, A has more double-high cells; B has more either-high cells. A joint-required rule favors A, an either-sufficient rule favors B, and an additive rule with matched marginal contributions gives a tie. The value of the audit is exposing that dependence, not choosing a winner without a mechanism.</p>
+  <details><summary>When the audit should change your next experiment</summary>
+   <ul>
+    <li><strong>Matched marginals, different pairing:</strong> same-cell organization remains an alternative explanation for a response difference. Test engagement in the relevant subpopulations before attributing the difference solely to construct activity.</li>
+    <li><strong>Separate measurements, wide bounds:</strong> collect paired observations if coexistence matters. More unpaired events do not identify the missing pairing.</li>
+    <li><strong>Cutoff-sensitive conclusions:</strong> investigate calibration and cutoff purpose. A positivity gate is not a demonstrated functional threshold.</li>
+    <li><strong>Comparable expression, different response:</strong> examine engagement, processing, active payload and susceptibility. This audit does not distinguish those downstream causes.</li>
+   </ul>
+   <p class="caption">Proposed experimental decision rules, not automated biological diagnoses. No significant difference, equivalence margin or efficacy ranking is inferred.</p>
+  </details>
+  <details><summary>When pairing does not add information</summary>
+   <p>For an exactly additive response a(X) + b(Y), matched marginal distributions imply matched expected scores regardless of pairing. Nonlinear single-axis behavior is not enough: a nonseparable interaction is what makes the joint distribution potentially consequential.</p>
+   <p>The optional product and either-route scores test two such assumptions. Neither is assigned by the word “bispecific,” and neither establishes the physical engagement state.</p>
+  </details>
+  <p><a href="mechanistic-modeling-reading-guide.md">Read the scientific argument, mathematical decomposition and literature synthesis</a>. This is a descriptive comparability audit with mechanistic context, not a dynamic ADC model.</p>
+  <p>Challenge the next inference in the separate <a href="productive-delivery.html">lower-uptake, higher-productive-delivery worked example</a>. It follows invented input fluxes through routing, processing and cytosolic escape, without inferring rates from expression or predicting efficacy.</p>
+ </section>
+ <section class="plotpanel" id="mechanism">
+  <p class="eyebrow">THE TOOL, NOT THE ORACLE</p><h2>Recognition is an address, not a completed delivery.</h2>
+  <p class="boundary">This analysis compares target distributions. It does not establish productive delivery or cell killing.</p>
+  <div id="j-mechanism-svg" class="schematic-frame"></div>
+  <p class="caption">Conceptual route map, not a complete kinetic model. Alternative release routes and construct-specific antibody effects require separate evidence. Solid paths show a possible delivery sequence; dashed paths show competing or additional routes. No arrow is a measured rate.</p>
+  <button id="j-download-mechanism" type="button">Download mechanism schematic · SVG</button>
+  <details id="j-evidence-panel"><summary>Record the evidence behind the proposed mechanism</summary>
+   <p class="help">Optional, user-reported metadata only. “User-reported measurement” is not software verification. Missing evidence is not evidence of biological failure. This panel never produces a confidence or efficacy score.</p>
+   <div id="j-evidence"></div>
+  </details>
+  <p class="caption">Trafficking and susceptibility: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7054312/">Hunter et al., 2020</a>. Specific lysosomal catabolite transport: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9896951/">Tomabechi et al., 2022</a>. Distribution versus per-cell uptake: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5903206/">Cilliers et al., 2018</a>. Extracellular release: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5844458/">Dal Corso et al., 2017</a>.</p>
+  <h3>What the next model must explain</h3>
+  <p>For intracellular processing, spatial transport, population-specific payload exposure and bispecific engagement, read the <a href="mechanistic-modeling-reading-guide.md">annotated mechanistic modeling guide</a>. It distinguishes calibration from independent testing and maps each paper to a possible future module.</p>
+  <p class="caption">Start with <a href="https://dspace.mit.edu/bitstream/handle/1721.1/103801/12248_2016_9892_ReferencePDF.pdf?sequence=1&amp;isAllowed=y">Maass et al., 2016</a>, <a href="https://pubs.rsc.org/en/content/articlehtml/2018/me/c7me00093f">Khera et al., 2018</a> and <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11576657/">Scheuher et al., 2024 (online 2023)</a>. These dynamic models are not implemented by this descriptive audit.</p>
+ </section>
+</div>
+</section>
+<section class="science"><div><h2>A small calculation.<br>A deliberately large boundary.</h2><p>Matched antigen distributions do not establish matched accessible epitopes, tissue exposure, productive processing, payload susceptibility or response history. A more elaborate claim needs more than another expression column.</p></div>
+<div><p><a href="joint-model.md">Read the paired model and mathematics</a> · <a href="joint-model.js" download>Download the calculation code</a> · <a href="extension-specification.md">Read the full extension specification</a></p><p>Product = uv and either-route = u + v − uv are declared mathematical scenarios. Neither is assigned automatically to a bispecific format. Biparatopic binding to one receptor is not two independently measured antigen axes.</p><p>Useful models for assumptions with expensive ambitions.</p></div></section>
+<footer><p>Data-Rich, Insight-Poor · 99 Small Problems · Research-use extension preview</p><p>Synthetic defaults. Independent general mathematics. No therapeutic parameter sets, product-specific constructs or confidential observations. The frozen v0.1.0-alpha release is unchanged.</p></footer>
+</main>
+</body>
+</html>

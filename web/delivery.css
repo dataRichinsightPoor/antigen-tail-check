@@ -1,0 +1,63 @@
+.delivery-plots{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)}
+.delivery-plots .plotpanel{margin-top:0}
+.delivery-plots canvas{height:270px}
+.delivery-plots h3{margin-top:0}
+.delivery-section{margin-top:var(--space-5)}
+#d-controls details input{font-variant-numeric:tabular-nums}
+.d-equations{font-family:var(--font-body);line-height:2;overflow-x:auto;padding:var(--space-4);background:var(--surface2);font-size:var(--text-sm);margin-top:var(--space-4)}
+.d-equations div{white-space:nowrap}
+.d-warning{border-left:3px solid var(--warning);padding-left:var(--space-4);margin-top:var(--space-4);color:var(--warning);font-size:var(--text-sm)}
+.d-key{display:inline-block;width:25px;height:0;border-top:3px solid var(--a);vertical-align:middle;margin-right:8px}
+.d-key.b{border-top-color:var(--b);border-top-style:dashed}
+#d-cancel{width:100%;margin-top:var(--space-3)}
+#d-table{min-width:510px}
+#d-exposure-table{min-width:500px}
+#d-exposure-science,#d-exposure-evidence{margin-top:var(--space-4)}
+#d-exposure-science p,#d-exposure-evidence p{margin-top:var(--space-3);font-size:var(--text-sm)}
+.d-profile-charts{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-top:var(--space-4)}
+.d-profile-charts canvas{height:285px}
+#d-profile-cutoff{max-width:320px}
+#d-profile-table{min-width:500px}
+#d-profile-panel details p{font-size:var(--text-sm);margin-top:var(--space-3)}
+.d-pd-parameters{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-block:var(--space-4)}
+.d-pd-check{display:flex;align-items:flex-start;gap:var(--space-3)}
+.d-pd-check input{width:20px;min-width:20px;margin-top:5px;accent-color:var(--a)}
+.d-pd-flow{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-4);background:var(--surface2);margin-block:var(--space-4)}
+.d-pd-flow span{text-align:center;font-size:var(--text-lg)}
+.d-pd-flow small{display:block;font-size:var(--text-xs);color:var(--muted)}
+#d-pd-table{min-width:500px}
+.d-pd-audit{border-top:1px solid var(--border);margin-block:var(--space-5);padding-top:var(--space-4)}
+.d-pd-audit p,#d-pd-experiment p{margin-block:var(--space-3)}
+.d-pd-audit details p,#d-pd-experiment p{font-size:var(--text-sm)}
+#d-pd-experiment{margin-top:var(--space-4)}
+#d-pd-experiment h3{margin-top:var(--space-4)}
+#d-pd-factor-table{min-width:450px}
+#d-pd-science p{font-size:var(--text-sm);margin-top:var(--space-3)}
+#d-pd-panel .row{flex-wrap:wrap;margin-block:var(--space-4)}
+#d-schematic svg{min-width:790px}
+#d-node{font-variant-numeric:tabular-nums}
+.d-factor-line{font-variant-numeric:tabular-nums;color:var(--text);background:var(--surface2);padding:var(--space-4);margin-block:var(--space-4)}
+#d-chart-observation{height:270px;margin-top:var(--space-4)}
+#d-observation-panel .row{margin-block:var(--space-4)}
+#d-map,#d-auc-map{width:100%;height:420px;display:block;cursor:crosshair;margin-block:var(--space-4)}
+#d-map-panel .row,#d-auc-map-panel .row{margin-block:var(--space-4);flex-wrap:wrap}
+.d-map-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:var(--text-sm)}
+.d-map-legend span{padding:4px 8px;border:1px solid var(--border)}
+.d-map-above{border-left:5px solid var(--a)!important}
+.d-map-below{border-left:5px solid var(--b)!important}
+@media(max-width:1200px){.delivery-plots,.d-profile-charts{grid-template-columns:1fr}}
+@media(max-width:600px){
+ #d-exposure-table{min-width:0;font-size:var(--text-xs)}
+ #d-exposure-table th:first-child{width:56%;overflow-wrap:anywhere}
+ #d-exposure-table td{white-space:nowrap}
+ #d-profile-table{min-width:0;font-size:var(--text-xs)}
+ #d-profile-table th:first-child{width:52%;overflow-wrap:anywhere}
+ #d-pd-table{min-width:0;font-size:var(--text-xs)}
+ #d-pd-table th:first-child{width:53%;overflow-wrap:anywhere}
+ #d-pd-factor-table{min-width:0;font-size:var(--text-xs)}
+ #d-pd-factor-table th:first-child{width:38%;overflow-wrap:anywhere}
+ #d-pd-factor-table td{padding-inline:5px}
+ .d-pd-parameters{grid-template-columns:1fr}
+ .d-pd-flow{flex-direction:column}
+ .d-pd-flow span[aria-hidden]{transform:rotate(90deg)}
+}
